@@ -1,9 +1,9 @@
-
 # Odoo Inventory Management System
 
 # Odoo Inventory Management System
 
 ![Dashboard Screenshot](public/dashboard-preview.png)
+
 <p align="center"><i>Modern inventory dashboard for real-time tracking and analytics</i></p>
 
 ## Overview
@@ -24,24 +24,24 @@ This project is a modern inventory management system built with Next.js, TypeScr
 ## Installation
 
 1. **Clone the repository:**
-	```bash
-	git clone <your-repo-url>
-	cd odoo
-	```
+   ```bash
+   git clone <your-repo-url>
+   cd odoo
+   ```
 2. **Install dependencies:**
-	```bash
-	npm install
-	```
+   ```bash
+   npm install
+   ```
 3. **Set up environment variables:**
-	Create a `.env` file based on `.env.example` and configure your database and authentication secrets.
+   Create a `.env` file based on `.env.example` and configure your database and authentication secrets.
 4. **Run database migrations:**
-	```bash
-	npx prisma migrate dev --name init
-	```
+   ```bash
+   npx prisma migrate dev --name init
+   ```
 5. **Start the development server:**
-	```bash
-	npm run dev
-	```
+   ```bash
+   npm run dev
+   ```
 
 ## Usage
 
