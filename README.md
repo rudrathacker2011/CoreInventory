@@ -1,11 +1,5 @@
 # Odoo Inventory Management System
 
-# Odoo Inventory Management System
-
-![Dashboard Screenshot](public/dashboard-preview.png)
-
-<p align="center"><i>Modern inventory dashboard for real-time tracking and analytics</i></p>
-
 ## Overview
 
 This project is a modern inventory management system built with Next.js, TypeScript, and Prisma. It provides robust features for handling products, stock, deliveries, receipts, internal transfers, and user authentication. Designed for scalability and ease of use, it offers a clean dashboard and intuitive UI components.
