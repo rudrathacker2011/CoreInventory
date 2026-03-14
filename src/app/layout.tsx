@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CoreInventory — Inventory Management System",
+  title: "True Route — Inventory Management System",
   description:
     "A modular Inventory Management System with receipts, deliveries, transfers, stock tracking, and multi-warehouse support.",
 };

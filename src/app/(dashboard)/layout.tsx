@@ -27,7 +27,7 @@ function getPageTitle(pathname: string): string {
   for (const [path, title] of Object.entries(pageTitles)) {
     if (pathname.startsWith(path)) return title;
   }
-  return "CoreInventory";
+  return "True Route";
 }
 
 export default function DashboardLayout({

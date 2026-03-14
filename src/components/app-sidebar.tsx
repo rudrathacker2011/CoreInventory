@@ -7,6 +7,7 @@ import {
   Truck,
   ArrowLeftRight,
   ClipboardList,
+  Route,
   Boxes,
   History,
   Settings,
@@ -131,11 +132,11 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <Link href="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <Boxes className="size-4" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/20">
+                  <Route className="size-4" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">CoreInventory</span>
+                  <span className="font-semibold">True Route</span>
                   <span className="text-xs text-muted-foreground">
                     Inventory Management
                   </span>

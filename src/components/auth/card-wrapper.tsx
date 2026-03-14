@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import { Boxes } from "lucide-react";
+import { Route } from "lucide-react";
 import Link from "next/link";
 
 interface CardWrapperProps {
@@ -38,11 +38,11 @@ export const CardWrapper = ({
     <section className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">
       {/* ───── Logo above the card ───── */}
       <div className="mb-8 flex items-center gap-2.5">
-        <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-card">
-          <Boxes className="size-5 text-foreground" />
+        <div className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25">
+          <Route className="size-5 text-white" />
         </div>
         <span className="text-lg font-semibold tracking-tight text-foreground">
-          CoreInventory
+          True Route
         </span>
       </div>
 
