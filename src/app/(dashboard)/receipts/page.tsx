@@ -29,7 +29,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, CheckCircle } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  CheckCircle,
+  Calendar as CalendarIcon,
+} from "lucide-react";
 import {
   getReceipts,
   createReceipt,
@@ -38,8 +43,21 @@ import {
   deleteReceipt,
 } from "@/actions/receipts";
 import { getProducts } from "@/actions/products";
-import { getStatusBadgeVariant, getStatusLabel, formatDate, isLate } from "@/lib/helpers";
+import {
+  getStatusBadgeVariant,
+  getStatusLabel,
+  formatDate,
+  isLate,
+} from "@/lib/helpers";
 import { toast } from "sonner";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 type ReceiptLine = { productId: string; quantity: number };
 
@@ -68,7 +86,10 @@ export default function ReceiptsPage() {
   }, []);
 
   const addLine = () => {
-    setForm({ ...form, lines: [...form.lines, { productId: "", quantity: 1 }] });
+    setForm({
+      ...form,
+      lines: [...form.lines, { productId: "", quantity: 1 }],
+    });
   };
 
   const removeLine = (index: number) => {
@@ -83,7 +104,9 @@ export default function ReceiptsPage() {
 
   const handleSubmit = async () => {
     try {
-      const validLines = form.lines.filter((l) => l.productId && l.quantity > 0);
+      const validLines = form.lines.filter(
+        (l) => l.productId && l.quantity > 0,
+      );
       if (validLines.length === 0) {
         toast.error("Add at least one product line");
         return;
@@ -102,7 +125,10 @@ export default function ReceiptsPage() {
     }
   };
 
-  const handleStatusChange = async (id: string, status: "READY" | "CANCELLED") => {
+  const handleStatusChange = async (
+    id: string,
+    status: "READY" | "CANCELLED",
+  ) => {
     try {
       await updateReceiptStatus(id, status);
       toast.success(`Receipt marked as ${status.toLowerCase()}`);
@@ -171,23 +197,66 @@ export default function ReceiptsPage() {
                   <Label>Supplier / Contact</Label>
                   <Input
                     value={form.supplier}
-                    onChange={(e) => setForm({ ...form, supplier: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, supplier: e.target.value })
+                    }
                     placeholder="Supplier name"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 flex flex-col">
                   <Label>Schedule Date</Label>
-                  <Input
-                    type="date"
-                    value={form.scheduleDate}
-                    onChange={(e) => setForm({ ...form, scheduleDate: e.target.value })}
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !form.scheduleDate && "text-muted-foreground",
+                        )}
+                      >
+                        {form.scheduleDate ? (
+                          format(new Date(form.scheduleDate), "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={
+                          form.scheduleDate
+                            ? new Date(form.scheduleDate)
+                            : undefined
+                        }
+                        onSelect={(date) =>
+                          setForm({
+                            ...form,
+                            scheduleDate: date
+                              ? format(date, "yyyy-MM-dd")
+                              : "",
+                          })
+                        }
+                        disabled={(date) => date < new Date("1900-01-01")}
+                        initialFocus
+                        fromYear={new Date().getFullYear() - 10}
+                        toYear={new Date().getFullYear() + 10}
+                        captionLayout="dropdown"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>Products</Label>
-                  <Button type="button" variant="outline" size="sm" onClick={addLine}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addLine}
+                  >
                     <Plus className="size-3 mr-1" /> Add Line
                   </Button>
                 </div>
@@ -216,12 +285,20 @@ export default function ReceiptsPage() {
                         min="1"
                         value={line.quantity}
                         onChange={(e) =>
-                          updateLine(i, "quantity", Math.max(1, parseInt(e.target.value) || 1))
+                          updateLine(
+                            i,
+                            "quantity",
+                            Math.max(1, parseInt(e.target.value) || 1),
+                          )
                         }
                       />
                     </div>
                     {form.lines.length > 1 && (
-                      <Button variant="ghost" size="icon" onClick={() => removeLine(i)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeLine(i)}
+                      >
                         <Trash2 className="size-4 text-destructive" />
                       </Button>
                     )}
@@ -257,25 +334,44 @@ export default function ReceiptsPage() {
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   {Array.from({ length: 7 }).map((_, j) => (
-                    <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
+                    <TableCell key={j}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="text-center py-8 text-muted-foreground"
+                >
                   No receipts found.
                 </TableCell>
               </TableRow>
             ) : (
               filtered.map((r: any) => (
-                <TableRow key={r.id} className={isLate(r.scheduleDate) && r.status !== "DONE" ? "bg-red-50 dark:bg-red-950/20" : ""}>
-                  <TableCell className="font-mono font-medium">{r.reference}</TableCell>
+                <TableRow
+                  key={r.id}
+                  className={
+                    isLate(r.scheduleDate) && r.status !== "DONE"
+                      ? "bg-red-50 dark:bg-red-950/20"
+                      : ""
+                  }
+                >
+                  <TableCell className="font-mono font-medium">
+                    {r.reference}
+                  </TableCell>
                   <TableCell>{r.supplier || "—"}</TableCell>
                   <TableCell>
                     {formatDate(r.scheduleDate)}
                     {isLate(r.scheduleDate) && r.status !== "DONE" && (
-                      <Badge variant="destructive" className="ml-2 text-xs">Late</Badge>
+                      <Badge
+                        variant="outline"
+                        className="ml-2 text-xs border-destructive text-destructive"
+                      >
+                        Late
+                      </Badge>
                     )}
                   </TableCell>
                   <TableCell>{r.responsible?.name}</TableCell>
@@ -297,6 +393,7 @@ export default function ReceiptsPage() {
                     )}
                     {r.status === "READY" && (
                       <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => handleValidate(r.id)}
                       >
@@ -314,7 +411,11 @@ export default function ReceiptsPage() {
                       </Button>
                     )}
                     {r.status === "DRAFT" && (
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(r.id)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(r.id)}
+                      >
                         <Trash2 className="size-4 text-destructive" />
                       </Button>
                     )}

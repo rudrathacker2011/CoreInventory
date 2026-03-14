@@ -29,7 +29,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, CheckCircle } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  CheckCircle,
+  Calendar as CalendarIcon,
+} from "lucide-react";
 import {
   getDeliveryOrders,
   createDeliveryOrder,
@@ -38,8 +43,21 @@ import {
   deleteDeliveryOrder,
 } from "@/actions/delivery-orders";
 import { getProducts } from "@/actions/products";
-import { getStatusBadgeVariant, getStatusLabel, formatDate, isLate } from "@/lib/helpers";
+import {
+  getStatusBadgeVariant,
+  getStatusLabel,
+  formatDate,
+  isLate,
+} from "@/lib/helpers";
 import { toast } from "sonner";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export default function DeliveryOrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -50,7 +68,10 @@ export default function DeliveryOrdersPage() {
   const [form, setForm] = useState({
     deliveryAddress: "",
     scheduleDate: new Date().toISOString().split("T")[0],
-    lines: [{ productId: "", quantity: 1 }] as { productId: string; quantity: number }[],
+    lines: [{ productId: "", quantity: 1 }] as {
+      productId: string;
+      quantity: number;
+    }[],
   });
 
   const loadData = () => {
@@ -66,7 +87,10 @@ export default function DeliveryOrdersPage() {
   }, []);
 
   const addLine = () =>
-    setForm({ ...form, lines: [...form.lines, { productId: "", quantity: 1 }] });
+    setForm({
+      ...form,
+      lines: [...form.lines, { productId: "", quantity: 1 }],
+    });
 
   const removeLine = (i: number) =>
     setForm({ ...form, lines: form.lines.filter((_, idx) => idx !== i) });
@@ -79,7 +103,9 @@ export default function DeliveryOrdersPage() {
 
   const handleSubmit = async () => {
     try {
-      const validLines = form.lines.filter((l) => l.productId && l.quantity > 0);
+      const validLines = form.lines.filter(
+        (l) => l.productId && l.quantity > 0,
+      );
       if (validLines.length === 0) {
         toast.error("Add at least one product");
         return;
@@ -100,7 +126,7 @@ export default function DeliveryOrdersPage() {
 
   const handleStatusChange = async (
     id: string,
-    status: "DRAFT" | "WAITING" | "READY" | "CANCELLED"
+    status: "DRAFT" | "WAITING" | "READY" | "CANCELLED",
   ) => {
     try {
       await updateDeliveryOrderStatus(id, status);
@@ -171,17 +197,55 @@ export default function DeliveryOrdersPage() {
                   <Label>Delivery Address</Label>
                   <Input
                     value={form.deliveryAddress}
-                    onChange={(e) => setForm({ ...form, deliveryAddress: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, deliveryAddress: e.target.value })
+                    }
                     placeholder="Delivery address"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 flex flex-col">
                   <Label>Schedule Date</Label>
-                  <Input
-                    type="date"
-                    value={form.scheduleDate}
-                    onChange={(e) => setForm({ ...form, scheduleDate: e.target.value })}
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !form.scheduleDate && "text-muted-foreground",
+                        )}
+                      >
+                        {form.scheduleDate ? (
+                          format(new Date(form.scheduleDate), "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={
+                          form.scheduleDate
+                            ? new Date(form.scheduleDate)
+                            : undefined
+                        }
+                        onSelect={(date) =>
+                          setForm({
+                            ...form,
+                            scheduleDate: date
+                              ? format(date, "yyyy-MM-dd")
+                              : "",
+                          })
+                        }
+                        disabled={(date) => date < new Date("1900-01-01")}
+                        initialFocus
+                        fromYear={new Date().getFullYear() - 10}
+                        toYear={new Date().getFullYear() + 10}
+                        captionLayout="dropdown"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
               <div className="space-y-2">
@@ -215,11 +279,21 @@ export default function DeliveryOrdersPage() {
                         type="number"
                         min="1"
                         value={line.quantity}
-                        onChange={(e) => updateLine(i, "quantity", Math.max(1, parseInt(e.target.value) || 1))}
+                        onChange={(e) =>
+                          updateLine(
+                            i,
+                            "quantity",
+                            Math.max(1, parseInt(e.target.value) || 1),
+                          )
+                        }
                       />
                     </div>
                     {form.lines.length > 1 && (
-                      <Button variant="ghost" size="icon" onClick={() => removeLine(i)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeLine(i)}
+                      >
                         <Trash2 className="size-4 text-destructive" />
                       </Button>
                     )}
@@ -255,25 +329,37 @@ export default function DeliveryOrdersPage() {
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   {Array.from({ length: 7 }).map((_, j) => (
-                    <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
+                    <TableCell key={j}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                <TableCell
+                  colSpan={7}
+                  className="text-center py-8 text-muted-foreground"
+                >
                   No delivery orders found.
                 </TableCell>
               </TableRow>
             ) : (
               filtered.map((o: any) => (
                 <TableRow key={o.id}>
-                  <TableCell className="font-mono font-medium">{o.reference}</TableCell>
+                  <TableCell className="font-mono font-medium">
+                    {o.reference}
+                  </TableCell>
                   <TableCell>{o.deliveryAddress || "—"}</TableCell>
                   <TableCell>
                     {formatDate(o.scheduleDate)}
                     {isLate(o.scheduleDate) && o.status !== "DONE" && (
-                      <Badge variant="destructive" className="ml-2 text-xs">Late</Badge>
+                      <Badge
+                        variant="outline"
+                        className="ml-2 text-xs border-destructive text-destructive"
+                      >
+                        Late
+                      </Badge>
                     )}
                   </TableCell>
                   <TableCell>{o.responsible?.name}</TableCell>
@@ -285,28 +371,48 @@ export default function DeliveryOrdersPage() {
                   </TableCell>
                   <TableCell className="text-right space-x-1">
                     {o.status === "DRAFT" && (
-                      <Button variant="outline" size="sm" onClick={() => handleStatusChange(o.id, "READY")}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleStatusChange(o.id, "READY")}
+                      >
                         Mark Ready
                       </Button>
                     )}
                     {o.status === "WAITING" && (
-                      <Button variant="outline" size="sm" onClick={() => handleStatusChange(o.id, "READY")}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleStatusChange(o.id, "READY")}
+                      >
                         Mark Ready
                       </Button>
                     )}
                     {o.status === "READY" && (
-                      <Button size="sm" onClick={() => handleValidate(o.id)}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleValidate(o.id)}
+                      >
                         <CheckCircle className="size-3 mr-1" />
                         Validate
                       </Button>
                     )}
                     {o.status !== "DONE" && o.status !== "CANCELLED" && (
-                      <Button variant="ghost" size="sm" onClick={() => handleStatusChange(o.id, "CANCELLED")}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleStatusChange(o.id, "CANCELLED")}
+                      >
                         Cancel
                       </Button>
                     )}
                     {o.status === "DRAFT" && (
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(o.id)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(o.id)}
+                      >
                         <Trash2 className="size-4 text-destructive" />
                       </Button>
                     )}
