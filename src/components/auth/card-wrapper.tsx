@@ -2,18 +2,20 @@ import React from "react";
 import {
   Card,
   CardContent,
-  CardFooter,
+  CardDescription,
   CardHeader,
+  CardTitle,
 } from "../ui/card";
-import { BackButton } from "./BackButton";
 import { Boxes } from "lucide-react";
+import Link from "next/link";
 
 interface CardWrapperProps {
   children: React.ReactNode;
   headerLabel: string;
+  headerdescription: string;
   backButtonLable: string;
   backButtonHref: string;
-  headerdescription: string;
+  backButtonText?: string;
   isDisabled: boolean;
   showSocial?: boolean;
   secondaryAction?: {
@@ -28,40 +30,48 @@ export const CardWrapper = ({
   headerdescription,
   backButtonLable,
   backButtonHref,
+  backButtonText,
   isDisabled,
   secondaryAction,
 }: CardWrapperProps) => {
   return (
-    <section className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-4">
-      <div className="w-full max-w-[420px]">
-        <Card className="shadow-xl border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
-          <CardHeader className="text-center pb-2 pt-8">
-            {/* App Logo */}
-            <div className="flex justify-center mb-4">
-              <div className="flex items-center justify-center size-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/25">
-                <Boxes className="size-8" />
-              </div>
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight">{headerLabel}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{headerdescription}</p>
-          </CardHeader>
-          <CardContent className="px-6 pb-4">{children}</CardContent>
-          <CardFooter className="flex-col gap-1 px-6 pb-6">
-            <div className="flex items-center gap-1 text-sm">
-              {secondaryAction && (
-                <>
-                  <BackButton href={secondaryAction.href} lable={secondaryAction.label} />
-                  <span className="text-muted-foreground">|</span>
-                </>
-              )}
-              <BackButton href={backButtonHref} lable={backButtonLable} />
-            </div>
-          </CardFooter>
-        </Card>
-        <p className="text-center text-xs text-muted-foreground mt-6">
-          CoreInventory &copy; {new Date().getFullYear()}
-        </p>
+    <section className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">
+      {/* ───── Logo above the card ───── */}
+      <div className="mb-8 flex items-center gap-2.5">
+        <div className="flex size-9 items-center justify-center rounded-lg border border-border bg-card">
+          <Boxes className="size-5 text-foreground" />
+        </div>
+        <span className="text-lg font-semibold tracking-tight text-foreground">
+          CoreInventory
+        </span>
       </div>
+
+      {/* ───── Auth Card ───── */}
+      <Card className="w-full max-w-[420px] border-border bg-card shadow-2xl">
+        <CardHeader className="space-y-1 px-6 pt-0 pb-4 text-center">
+          <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
+            {headerLabel}
+          </CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">
+            {headerdescription}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="px-6 pb-4">
+          {children}
+        </CardContent>
+      </Card>
+
+      {/* ───── Footer link ───── */}
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        {backButtonText || backButtonLable.replace(/Sign Up|Sign up|Login|Sign In/gi, "").trim()}{" "}
+        <Link
+          href={backButtonHref}
+          className="font-medium text-foreground underline underline-offset-4 hover:text-primary transition-colors"
+        >
+          {backButtonLable}
+        </Link>
+      </p>
     </section>
   );
 };

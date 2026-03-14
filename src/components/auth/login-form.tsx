@@ -16,15 +16,16 @@ import { SigninSchema } from "@/lib";
 import * as z from "zod";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 
 export function LoginForm() {
-  const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isPending, startTransition] = useTransition();
   const searchparams = useSearchParams();
   const callbackUrl = searchparams.get("callbackUrl");
@@ -73,31 +74,33 @@ export function LoginForm() {
 
   return (
     <CardWrapper
-      headerLabel="Welcome Back"
-      headerdescription="Sign in to your CoreInventory account"
+      headerLabel="Welcome back"
+      headerdescription="Enter your credentials to sign in to your account"
       backButtonHref="/auth/signup"
-      backButtonLable="Sign Up"
+      backButtonLable="Sign up"
+      backButtonText="Don't have an account?"
       isDisabled={isPending}
-      secondaryAction={{
-        label: "Forgot Password?",
-        href: "/auth/reset",
-      }}
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* ── Divider (optional, for visual separation) ── */}
+         
+          {/* ── Login ID ── */}
           <FormField
             control={form.control}
             name="loginId"
             disabled={isPending}
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">Login Id</FormLabel>
+                <FormLabel className="text-sm font-semibold text-foreground">
+                  Login Id
+                </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter your Login ID"
+                    placeholder="Your Login Id"
                     {...field}
                     disabled={isPending}
-                    className="h-11"
+                    className="h-10 bg-transparent border-border text-foreground placeholder:text-muted-foreground"
                     autoComplete="username"
                   />
                 </FormControl>
@@ -106,25 +109,37 @@ export function LoginForm() {
             )}
           />
 
+          {/* ── Password ── */}
           <FormField
             control={form.control}
             name="password"
             disabled={isPending}
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">Password</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel className="text-sm font-semibold text-foreground" >
+                    Password
+                  </FormLabel>
+                  <Link
+                    href="/auth/reset"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hover:underline"
+                    tabIndex={-1}
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
                 <FormControl>
                   <div className="relative">
                     <Input
-                      placeholder="Enter your Password"
+                      placeholder="************"
                       {...field}
-                      disabled={isPending}
+                      disabled={isPending}  
                       type={isPasswordVisible ? "text" : "password"}
-                      className="h-11 pr-10"
+                      className="h-10 pr-10 bg-transparent border-border text-foreground"
                       autoComplete="current-password"
                     />
                     <button
-                      className="absolute right-0 top-0 h-11 px-3 text-muted-foreground hover:text-foreground transition-colors"
+                      className="absolute right-0 top-0 h-10 px-3 text-muted-foreground hover:text-foreground transition-colors"
                       onClick={() => setIsPasswordVisible(!isPasswordVisible)}
                       type="button"
                       tabIndex={-1}
@@ -142,17 +157,14 @@ export function LoginForm() {
             )}
           />
 
+          {/* ── Submit ── */}
           <Button
             disabled={isPending}
             type="submit"
-            className="w-full h-11 text-base font-semibold mt-2"
+            className="w-full h-10 text-sm font-semibold mt-2"
           >
-            {isPending ? (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            ) : (
-              <LogIn className="mr-2 size-4" />
-            )}
-            SIGN IN
+            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+            Login
           </Button>
         </form>
       </Form>

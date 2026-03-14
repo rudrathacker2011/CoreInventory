@@ -37,7 +37,7 @@ export const NewVerificationForm = () => {
     <CardWrapper
       headerLabel="Verification"
       headerdescription="Conforming your verification"
-      backButtonHref="/auth/signin"
+      backButtonHref="/auth/login"
       backButtonLable="Back to login"
       isDisabled={true}
       showSocial={false}

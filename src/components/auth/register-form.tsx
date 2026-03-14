@@ -15,14 +15,14 @@ import { RegisterSchema } from "@/lib";
 import * as z from "zod";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { Eye, EyeOff, Loader2, UserPlus } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Register } from "@/actions/auth/signup";
 
 export function RegisterForm() {
-  const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
-  const [isConfirmVisible, setIsConfirmVisible] = useState<boolean>(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isConfirmVisible, setIsConfirmVisible] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof RegisterSchema>>({
@@ -42,15 +42,9 @@ export function RegisterForm() {
       Register(values)
         .then((data: { success?: string; error?: string }) => {
           if (data.error) {
-            toast.error(data.error, {
-              closeButton: true,
-              id: toastId,
-            });
+            toast.error(data.error, { closeButton: true, id: toastId });
           } else {
-            toast.success(data.success, {
-              closeButton: true,
-              id: toastId,
-            });
+            toast.success(data.success, { closeButton: true, id: toastId });
             form.reset();
           }
         })
@@ -65,29 +59,33 @@ export function RegisterForm() {
 
   return (
     <CardWrapper
-      headerLabel="Create Account"
-      headerdescription="Sign up to start managing your inventory"
+      headerLabel="Create an account"
+      headerdescription="Enter your details below to create your account"
       backButtonHref="/auth/login"
-      backButtonLable="Already have an account?"
+      backButtonLable="Login"
+      backButtonText="Already have an account?"
       isDisabled={isPending}
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+         
+
+          {/* ── Login ID ── */}
           <FormField
             control={form.control}
             name="loginId"
             disabled={isPending}
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">
-                  Enter Login Id
+                <FormLabel className="text-sm font-semibold text-foreground">
+                  Login Id
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Choose a unique Login ID (6-12 chars)"
+                    placeholder="Choose a unique ID (6-12 chars)"
                     {...field}
                     disabled={isPending}
-                    className="h-11"
+                    className="h-10 bg-transparent border-border text-foreground placeholder:text-muted-foreground"
                     autoComplete="username"
                   />
                 </FormControl>
@@ -96,22 +94,23 @@ export function RegisterForm() {
             )}
           />
 
+          {/* ── Email ── */}
           <FormField
             control={form.control}
             name="email"
             disabled={isPending}
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">
-                  Enter Email Id
+                <FormLabel className="text-sm font-semibold text-foreground">
+                  Email
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="your.email@example.com"
+                    placeholder="m@example.com"
                     {...field}
                     disabled={isPending}
                     type="email"
-                    className="h-11"
+                    className="h-10 bg-transparent border-border text-foreground placeholder:text-muted-foreground"
                     autoComplete="email"
                   />
                 </FormControl>
@@ -120,27 +119,28 @@ export function RegisterForm() {
             )}
           />
 
+          {/* ── Password ── */}
           <FormField
             control={form.control}
             name="password"
             disabled={isPending}
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">
-                  Enter Password
+                <FormLabel className="text-sm font-semibold text-foreground">
+                  Password
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
-                      placeholder="Min 8 chars, uppercase, lowercase, digit, special"
+                      placeholder="************"
                       {...field}
                       disabled={isPending}
                       type={isPasswordVisible ? "text" : "password"}
-                      className="h-11 pr-10"
+                      className="h-10 pr-10 bg-transparent border-border text-foreground"
                       autoComplete="new-password"
                     />
                     <button
-                      className="absolute right-0 top-0 h-11 px-3 text-muted-foreground hover:text-foreground transition-colors"
+                      className="absolute right-0 top-0 h-10 px-3 text-muted-foreground hover:text-foreground transition-colors"
                       onClick={() => setIsPasswordVisible(!isPasswordVisible)}
                       type="button"
                       tabIndex={-1}
@@ -158,27 +158,28 @@ export function RegisterForm() {
             )}
           />
 
+          {/* ── Confirm Password ── */}
           <FormField
             control={form.control}
             name="confirmPassword"
             disabled={isPending}
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">
+                <FormLabel className="text-sm font-semibold text-foreground">
                   Re-Enter Password
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
-                      placeholder="Confirm your password"
+                      placeholder="************"
                       {...field}
                       disabled={isPending}
                       type={isConfirmVisible ? "text" : "password"}
-                      className="h-11 pr-10"
+                      className="h-10 pr-10 bg-transparent border-border text-foreground"
                       autoComplete="new-password"
                     />
                     <button
-                      className="absolute right-0 top-0 h-11 px-3 text-muted-foreground hover:text-foreground transition-colors"
+                      className="absolute right-0 top-0 h-10 px-3 text-muted-foreground hover:text-foreground transition-colors"
                       onClick={() => setIsConfirmVisible(!isConfirmVisible)}
                       type="button"
                       tabIndex={-1}
@@ -196,17 +197,14 @@ export function RegisterForm() {
             )}
           />
 
+          {/* ── Submit ── */}
           <Button
             disabled={isPending}
             type="submit"
-            className="w-full h-11 text-base font-semibold mt-2"
+            className="w-full h-10 text-sm font-semibold mt-2"
           >
-            {isPending ? (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            ) : (
-              <UserPlus className="mr-2 size-4" />
-            )}
-            SIGN UP
+            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+            Sign Up
           </Button>
         </form>
       </Form>

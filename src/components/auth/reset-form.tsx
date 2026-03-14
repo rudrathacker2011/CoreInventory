@@ -16,7 +16,7 @@ import {
 } from "../ui/form";
 import { CardWrapper } from "./card-wrapper";
 import { Button } from "../ui/button";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { reset } from "@/actions/auth/reset";
 import { toast } from "sonner";
 
@@ -37,7 +37,6 @@ export const ResetForm = () => {
         if (data?.error) {
           toast.error(data.error, { id: toastId, closeButton: true });
         }
-
         if (data?.success) {
           toast.success(data.success, { id: toastId, closeButton: true });
           form.reset();
@@ -48,27 +47,29 @@ export const ResetForm = () => {
 
   return (
     <CardWrapper
-      headerLabel="Forgot Password?"
-      headerdescription="Enter your email to receive a password reset link"
-      backButtonLable="Back to Login"
+      headerLabel="Forgot your password?"
+      headerdescription="Enter your email and we'll send you a reset link"
+      backButtonLable="Back to login"
       backButtonHref="/auth/login"
       isDisabled={isPending}
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">Email</FormLabel>
+                <FormLabel className="text-sm font-semibold text-foreground">
+                  Email
+                </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     disabled={isPending}
-                    placeholder="your.email@example.com"
+                    placeholder="m@example.com"
                     type="email"
-                    className="h-11"
+                    className="h-10 bg-transparent border-border text-foreground placeholder:text-muted-foreground"
                   />
                 </FormControl>
                 <FormMessage />
@@ -78,14 +79,10 @@ export const ResetForm = () => {
           <Button
             disabled={isPending}
             type="submit"
-            className="w-full h-11 text-base font-semibold"
+            className="w-full h-10 text-sm font-semibold"
           >
-            {isPending ? (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            ) : (
-              <Mail className="mr-2 size-4" />
-            )}
-            Send Reset Email
+            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+            Send reset link
           </Button>
         </form>
       </Form>
