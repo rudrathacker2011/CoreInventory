@@ -286,7 +286,7 @@ export function AppSidebar() {
               <DropdownMenuContent
                 align="start"
                 side="top"
-                className="w-[--radix-dropdown-menu-trigger-width]"
+                className="min-w-56 w-[--radix-dropdown-menu-trigger-width]"
               >
                 <DropdownMenuItem onClick={() => router.push("/profile")}>
                   <User className="size-4 mr-2" />

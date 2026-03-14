@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -234,7 +235,7 @@ export default function ProductsPage() {
                 New Product
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg">
+            <DialogContent className="max-w-2xl w-full">
               <DialogHeader>
                 <DialogTitle>
                   {editing ? "Edit Product" : "New Product"}
@@ -289,9 +290,11 @@ export default function ProductsPage() {
                   <Label>Cost Per Unit</Label>
                   <Input
                     type="number"
+                    min="0"
+                    step="0.01"
                     value={form.costPerUnit}
                     onChange={(e) =>
-                      setForm({ ...form, costPerUnit: parseFloat(e.target.value) || 0 })
+                      setForm({ ...form, costPerUnit: Math.max(0, parseFloat(e.target.value) || 0) })
                     }
                   />
                 </div>
@@ -300,9 +303,10 @@ export default function ProductsPage() {
                   <Label>Reorder Min Qty</Label>
                   <Input
                     type="number"
+                    min="0"
                     value={form.reorderMin}
                     onChange={(e) =>
-                      setForm({ ...form, reorderMin: parseFloat(e.target.value) || 0 })
+                      setForm({ ...form, reorderMin: Math.max(0, parseFloat(e.target.value) || 0) })
                     }
                   />
                 </div>
@@ -310,9 +314,10 @@ export default function ProductsPage() {
                   <Label>Reorder Max Qty</Label>
                   <Input
                     type="number"
+                    min="0"
                     value={form.reorderMax}
                     onChange={(e) =>
-                      setForm({ ...form, reorderMax: parseFloat(e.target.value) || 0 })
+                      setForm({ ...form, reorderMax: Math.max(0, parseFloat(e.target.value) || 0) })
                     }
                   />
                 </div>
@@ -344,7 +349,15 @@ export default function ProductsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length === 0 ? (
+            {isPending && products.length === 0 ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  {Array.from({ length: 7 }).map((_, j) => (
+                    <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No products found.

@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -160,7 +161,7 @@ export default function ReceiptsPage() {
               New Receipt
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl w-full">
             <DialogHeader>
               <DialogTitle>New Receipt (Incoming Goods)</DialogTitle>
             </DialogHeader>
@@ -209,13 +210,13 @@ export default function ReceiptsPage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="w-24">
+                    <div className="w-28">
                       <Input
                         type="number"
-                        min={1}
+                        min="1"
                         value={line.quantity}
                         onChange={(e) =>
-                          updateLine(i, "quantity", parseInt(e.target.value) || 1)
+                          updateLine(i, "quantity", Math.max(1, parseInt(e.target.value) || 1))
                         }
                       />
                     </div>
@@ -252,7 +253,15 @@ export default function ReceiptsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length === 0 ? (
+            {isPending && receipts.length === 0 ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  {Array.from({ length: 7 }).map((_, j) => (
+                    <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No receipts found.

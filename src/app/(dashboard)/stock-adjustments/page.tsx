@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -93,7 +94,7 @@ export default function StockAdjustmentsPage() {
               New Adjustment
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-lg w-full">
             <DialogHeader>
               <DialogTitle>New Stock Adjustment</DialogTitle>
             </DialogHeader>
@@ -138,10 +139,10 @@ export default function StockAdjustmentsPage() {
                 <Label>Physically Counted Quantity</Label>
                 <Input
                   type="number"
-                  min={0}
+                  min="0"
                   value={form.countedQty}
                   onChange={(e) =>
-                    setForm({ ...form, countedQty: parseFloat(e.target.value) || 0 })
+                    setForm({ ...form, countedQty: Math.max(0, parseFloat(e.target.value) || 0) })
                   }
                 />
               </div>
@@ -171,7 +172,15 @@ export default function StockAdjustmentsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {adjustments.length === 0 ? (
+            {isPending && adjustments.length === 0 ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <TableRow key={i}>
+                  {Array.from({ length: 8 }).map((_, j) => (
+                    <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : adjustments.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                   No adjustments yet.

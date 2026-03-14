@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getMoveHistory } from "@/actions/stock";
 import { getStatusBadgeVariant, getStatusLabel, formatDateTime } from "@/lib/helpers";
 
@@ -47,6 +48,7 @@ const moveTypeColors: Record<string, string> = {
 export default function MoveHistoryPage() {
   const [moves, setMoves] = useState<any[]>([]);
   const [isPending, startTransition] = useTransition();
+  const [isLoaded, setIsLoaded] = useState(false);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -56,22 +58,22 @@ export default function MoveHistoryPage() {
     startTransition(async () => {
       const data = await getMoveHistory();
       setMoves(data);
+      setIsLoaded(true);
     });
   }, []);
 
-  const filtered = moves
-    .filter((m) => {
-      if (typeFilter !== "ALL" && m.moveType !== typeFilter) return false;
-      if (statusFilter !== "ALL" && m.status !== statusFilter) return false;
-      if (search) {
-        const s = search.toLowerCase();
-        return (
-          m.reference.toLowerCase().includes(s) ||
-          m.product?.name.toLowerCase().includes(s)
-        );
-      }
-      return true;
-    });
+  const filtered = moves.filter((m) => {
+    if (typeFilter !== "ALL" && m.moveType !== typeFilter) return false;
+    if (statusFilter !== "ALL" && m.status !== statusFilter) return false;
+    if (search) {
+      const s = search.toLowerCase();
+      return (
+        m.reference.toLowerCase().includes(s) ||
+        m.product?.name.toLowerCase().includes(s)
+      );
+    }
+    return true;
+  });
 
   const getLocationName = (loc: any) =>
     loc ? `${loc.warehouse?.name}/${loc.name}` : "—";
@@ -141,7 +143,17 @@ export default function MoveHistoryPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.length === 0 ? (
+                {!isLoaded ? (
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 8 }).map((_, j) => (
+                        <TableCell key={j}>
+                          <Skeleton className="h-4 w-full" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : filtered.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       No move history found.
@@ -152,7 +164,9 @@ export default function MoveHistoryPage() {
                     <TableRow key={m.id}>
                       <TableCell className="font-mono font-medium">{m.reference}</TableCell>
                       <TableCell>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${moveTypeColors[m.moveType]}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${moveTypeColors[m.moveType]}`}
+                        >
                           {moveTypeLabels[m.moveType as keyof MoveTypeLabel]}
                         </span>
                       </TableCell>
@@ -177,35 +191,68 @@ export default function MoveHistoryPage() {
         </TabsContent>
 
         <TabsContent value="kanban">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {statusGroups.map((status) => (
-              <div key={status} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-sm">{getStatusLabel(status as any)}</h3>
-                  <Badge variant="secondary">{groupedMoves[status]?.length || 0}</Badge>
+          {!isLoaded ? (
+            <div className="grid grid-cols-5 gap-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="space-y-3">
+                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-24 w-full rounded-lg" />
+                  <Skeleton className="h-24 w-full rounded-lg" />
                 </div>
-                <div className="space-y-2">
-                  {(groupedMoves[status] || []).map((m: any) => (
-                    <Card key={m.id} className="shadow-sm">
-                      <CardContent className="p-3 space-y-1">
-                        <div className="font-mono text-sm font-medium">{m.reference}</div>
-                        <div className="text-xs text-muted-foreground">{m.product?.name}</div>
-                        <div className="flex items-center justify-between">
-                          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${moveTypeColors[m.moveType]}`}>
-                            {moveTypeLabels[m.moveType as keyof MoveTypeLabel]}
-                          </span>
-                          <span className="text-xs font-medium">{m.quantity} qty</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  {(!groupedMoves[status] || groupedMoves[status].length === 0) && (
-                    <p className="text-xs text-muted-foreground text-center py-4">No moves</p>
-                  )}
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {statusGroups.map((status) => (
+                <div key={status} className="flex flex-col min-w-0">
+                  {/* Column Header */}
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <h3 className="font-semibold text-sm truncate">
+                      {getStatusLabel(status as any)}
+                    </h3>
+                    <Badge variant="secondary" className="ml-2 shrink-0">
+                      {groupedMoves[status]?.length || 0}
+                    </Badge>
+                  </div>
+
+                  {/* Column Body */}
+                  <div className="space-y-2 rounded-lg bg-muted/40 p-2 min-h-[120px]">
+                    {(groupedMoves[status] || []).length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-8">
+                        No moves
+                      </p>
+                    ) : (
+                      (groupedMoves[status] || []).map((m: any) => (
+                        <Card
+                          key={m.id}
+                          className="shadow-sm hover:shadow-md transition-shadow cursor-default"
+                        >
+                          <CardContent className="p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="font-mono text-xs font-semibold truncate">
+                                {m.reference}
+                              </span>
+                              <span className="text-xs font-medium text-muted-foreground shrink-0 ml-2">
+                                {m.quantity} qty
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {m.product?.name}
+                            </p>
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${moveTypeColors[m.moveType]}`}
+                            >
+                              {moveTypeLabels[m.moveType as keyof MoveTypeLabel]}
+                            </span>
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
