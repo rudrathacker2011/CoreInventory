@@ -12,6 +12,6 @@ export function useCurrentUserClient(): {
   status: "loading" | "authenticated" | "unauthenticated";
 } {
   const session = useSession();
-  // @ts-expect-error — next-auth session type doesn't include custom fields by default
+  //@ts-ignore
   return { user: session.data?.user ?? null, status: session.status };
 }

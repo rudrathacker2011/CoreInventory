@@ -8,7 +8,8 @@ import bcrypt from "bcryptjs";
 import { sendVerificationEmail } from "@/lib/email";
 
 export const Signin = async (
-  values: z.infer<typeof SigninSchema>
+  values: z.infer<typeof SigninSchema>,
+  callbackUrl?: string | null
 ) => {
   const validatedFields = SigninSchema.safeParse(values);
 
@@ -16,26 +17,20 @@ export const Signin = async (
 
   const { loginId, password } = validatedFields.data;
 
-  let existingUser;
-  try {
-    // Find user by loginId
-    existingUser = await db.user.findUnique({
-      where: { loginId },
-    });
-  } catch (error) {
-    console.error("Database error during login:", error);
-    return { error: "Something went wrong. Please try again later." };
-  }
+  // Find user by loginId
+  const existingUser = await db.user.findUnique({
+    where: { loginId },
+  });
 
   if (!existingUser || !existingUser.password)
     return { error: "Invalid Login Id or Password" };
 
   if (!existingUser.emailVerified) {
-    try {
-      const verificationToken = await generateVerificationToken(
-        existingUser.email
-      );
+    const verificationToken = await generateVerificationToken(
+      existingUser.email
+    );
 
+    try {
       await sendVerificationEmail(
         verificationToken.email,
         verificationToken.token,
