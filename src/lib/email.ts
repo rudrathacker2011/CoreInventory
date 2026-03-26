@@ -18,14 +18,10 @@ const isProd = process.env.NODE_ENV === "production";
 
 const getBaseUrl = () => {
   const base =
-    process.env.NEXTAUTH_URL ||
-    process.env.BASE_URL ||
-    (!isProd ? "http://localhost:3000" : undefined);
+    process.env.NEXTAUTH_URL || (!isProd ? "http://localhost:3000" : "");
 
   if (!base) {
-    console.warn(
-      "BASE_URL/NEXTAUTH_URL is not set; email links may be broken.",
-    );
+    console.warn("NEXTAUTH_URL is not set; email links may be broken.");
   }
 
   return base ?? "";
@@ -152,7 +148,7 @@ const sendEmail = async (mailOptions: MailOptions): Promise<SendResult> => {
 ================================ */
 export async function sendPasswordResetEmail(email: string, token: string) {
   const baseUrl = getBaseUrl();
-  const resetLink = `${baseUrl}/auth/new-password?token=${token}`;
+  const resetLink = `${process.env.NEXTAUTH_URL || baseUrl}/auth/new-password?token=${token}`;
 
   const mailOptions: MailOptions = {
     from: `"Support Team" <${process.env.EMAIL_FROM}>`,
@@ -223,7 +219,7 @@ export async function sendVerificationEmail(
   name: string,
 ) {
   const baseUrl = getBaseUrl();
-  const verificationLink = `${baseUrl}/auth/new-verification?token=${token}`;
+  const verificationLink = `${process.env.NEXTAUTH_URL || baseUrl}/auth/new-verification?token=${token}`;
 
   const mailOptions: MailOptions = {
     from: `"Support Team" <${process.env.EMAIL_FROM}>`,

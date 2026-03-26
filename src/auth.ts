@@ -7,23 +7,18 @@ import { SigninSchema } from "./lib";
 import bcrypt from "bcryptjs";
 
 const isProd = process.env.NODE_ENV === "production";
-const resolvedAuthSecret = process.env.NEXTAUTH_SECRET || "dev-nextauth-secret";
+const resolvedAuthSecret =
+  process.env.NEXTAUTH_SECRET ?? (!isProd ? "dev-nextauth-secret" : undefined);
 
-if (!process.env.NEXTAUTH_SECRET) {
-  const message =
-    "NEXTAUTH_SECRET is not set. Add it to your environment for stable authentication.";
-  if (isProd) {
-    console.warn(message);
-  } else {
-    console.info(`${message} Using a development fallback secret.`);
-  }
+if (isProd && !resolvedAuthSecret) {
+  throw new Error("NEXTAUTH_SECRET is required in production.");
 }
 
 const resolvedNextAuthUrl =
   process.env.NEXTAUTH_URL || (!isProd ? "http://localhost:3000" : undefined);
 
-if (!process.env.NEXTAUTH_URL && isProd) {
-  console.warn("NEXTAUTH_URL is not set. Set it to your deployment URL.");
+if (isProd && !process.env.NEXTAUTH_URL) {
+  throw new Error("NEXTAUTH_URL is required in production.");
 }
 
 if (!process.env.NEXTAUTH_URL && resolvedNextAuthUrl) {

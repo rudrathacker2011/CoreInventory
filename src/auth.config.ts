@@ -14,3 +14,5 @@ export const authConfig: NextAuthConfig = {
     error: "/auth/error",
   },
 };
+
+export default authConfig satisfies NextAuthConfig;
