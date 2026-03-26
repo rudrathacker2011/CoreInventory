@@ -44,7 +44,7 @@ export function LoginForm() {
 
     startTransition(async () => {
       try {
-        const data = await Signin(values, callbackUrl);
+        const data = await Signin(values);
 
         if (data?.error) {
           toast.error(data.error, { id: toastId, closeButton: true });

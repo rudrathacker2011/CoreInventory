@@ -8,8 +8,7 @@ import bcrypt from "bcryptjs";
 import { sendVerificationEmail } from "@/lib/email";
 
 export const Signin = async (
-  values: z.infer<typeof SigninSchema>,
-  callbackUrl?: string | null
+  values: z.infer<typeof SigninSchema>
 ) => {
   const validatedFields = SigninSchema.safeParse(values);
 

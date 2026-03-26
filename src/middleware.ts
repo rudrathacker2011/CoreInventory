@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import {
   apiAuthPrefix,
   authRoutes,
@@ -11,11 +10,10 @@ import NextAuth from "next-auth";
 
 const { auth } = NextAuth(authConfig);
 
-export async function middleware(req: NextRequest) {
+export default auth(function middleware(req) {
   const { nextUrl } = req;
 
-  const session = await auth();
-  const isLoggedIn = !!session?.user;
+  const isLoggedIn = !!req.auth;
 
   const pathname = nextUrl.pathname;
 
@@ -37,7 +35,7 @@ export async function middleware(req: NextRequest) {
   }
 
   return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: ["/((?!_next|favicon.ico|.*\\..*).*)"],

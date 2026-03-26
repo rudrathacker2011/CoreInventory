@@ -63,7 +63,7 @@ export const Register = async (values: z.infer<typeof RegisterSchema>) => {
     console.error("Error while sending Verification Mail:", error);
     return {
       error: "",
-      success: "Account created! Please log in to resend the verification email.",
+      success: "Account created! Please log in — a verification email will be sent automatically.",
     };
   }
 
