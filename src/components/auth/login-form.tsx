@@ -44,26 +44,18 @@ export function LoginForm() {
 
     startTransition(async () => {
       try {
-        const data = await Signin(values);
+        const data = await Signin(values, callbackUrl);
 
         if (data?.error) {
           toast.error(data.error, { id: toastId, closeButton: true });
           return;
         }
 
-        const result = await signIn("credentials", {
+        await signIn("credentials", {
           loginId: values.loginId,
           password: values.password,
           redirect: false,
         });
-
-        if (result?.error) {
-          toast.error("Invalid Login Id or Password", {
-            id: toastId,
-            closeButton: true,
-          });
-          return;
-        }
 
         toast.success("Signed in successfully!", {
           id: toastId,

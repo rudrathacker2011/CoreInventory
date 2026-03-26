@@ -21,7 +21,6 @@ function useCssVar(varName: string, fallback: string) {
     const root = document.documentElement;
     const computed = getComputedStyle(root).getPropertyValue(varName).trim();
     if (computed) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setValue(`oklch(${computed})`);
     }
   }, [varName]);
