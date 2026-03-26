@@ -14,36 +14,46 @@ export const Register = async (values: z.infer<typeof RegisterSchema>) => {
 
   const { loginId, email, password } = validation.data;
 
-  // Check if loginId already exists
-  const existingLoginId = await db.user.findUnique({
-    where: { loginId },
-  });
+  let existingLoginId, existingEmail;
+  try {
+    // Check if loginId already exists
+    existingLoginId = await db.user.findUnique({
+      where: { loginId },
+    });
+
+    // Check if email already exists
+    existingEmail = await db.user.findUnique({
+      where: { email },
+    });
+  } catch (error) {
+    console.error("Database error during signup check:", error);
+    return { error: "Something went wrong. Please try again later.", success: "" };
+  }
 
   if (existingLoginId)
     return { error: "Login ID is already taken!", success: "" };
-
-  // Check if email already exists
-  const existingEmail = await db.user.findUnique({
-    where: { email },
-  });
 
   if (existingEmail)
     return { error: "Email is already registered!", success: "" };
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const user = await db.user.create({
-    data: {
-      loginId,
-      name: loginId, // Use loginId as display name initially
-      email,
-      password: hashedPassword,
-    },
-  });
-
-  const verificationToken = await generateVerificationToken(email);
+  try {
+    await db.user.create({
+      data: {
+        loginId,
+        name: loginId, // Use loginId as display name initially
+        email,
+        password: hashedPassword,
+      },
+    });
+  } catch (error) {
+    console.error("Database error during user creation:", error);
+    return { error: "Failed to create account. Please try again.", success: "" };
+  }
 
   try {
+    const verificationToken = await generateVerificationToken(email);
     await sendVerificationEmail(
       verificationToken.email,
       verificationToken.token,
@@ -51,6 +61,10 @@ export const Register = async (values: z.infer<typeof RegisterSchema>) => {
     );
   } catch (error) {
     console.error("Error while sending Verification Mail:", error);
+    return {
+      error: "",
+      success: "Account created! Please log in to resend the verification email.",
+    };
   }
 
   return { success: "Confirmation email sent!" };
