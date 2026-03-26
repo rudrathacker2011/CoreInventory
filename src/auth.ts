@@ -47,7 +47,7 @@ export const {
       if (account?.provider === "google") {
         try {
           const existingUser = await db.user.findUnique({
-            // @ts-ignore
+            // @ts-expect-error — user.email exists at runtime from the OAuth profile
             where: { email: user?.email },
           });
 
