@@ -1,20 +1,160 @@
 import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_FROM,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+type MailOptions = {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+};
+
+type SendResult = {
+  ok: boolean;
+  channel?: "smtp" | "resend";
+  error?: string;
+  id?: string;
+};
+
+const isProd = process.env.NODE_ENV === "production";
+
+const getBaseUrl = () => {
+  const base =
+    process.env.NEXTAUTH_URL ||
+    process.env.BASE_URL ||
+    (!isProd ? "http://localhost:3000" : undefined);
+
+  if (!base) {
+    console.warn(
+      "BASE_URL/NEXTAUTH_URL is not set; email links may be broken.",
+    );
+  }
+
+  return base ?? "";
+};
+
+const validateSmtpEnv = () => {
+  const missing = [
+    "EMAIL_SERVER_HOST",
+    "EMAIL_SERVER_PORT",
+    "EMAIL_SERVER_USER",
+    "EMAIL_SERVER_PASSWORD",
+    "EMAIL_FROM",
+  ].filter((key) => !process.env[key]);
+
+  if (missing.length) {
+    throw new Error(`Missing email credentials: ${missing.join(", ")}`);
+  }
+
+  const port = Number(process.env.EMAIL_SERVER_PORT);
+  if (Number.isNaN(port) || port <= 0) {
+    throw new Error("EMAIL_SERVER_PORT must be a valid number");
+  }
+
+  if (!isProd) {
+    console.log("Email config loaded:", {
+      host: process.env.EMAIL_SERVER_HOST,
+      user: process.env.EMAIL_SERVER_USER,
+      hasPassword: !!process.env.EMAIL_SERVER_PASSWORD,
+      port,
+    });
+  }
+
+  return {
+    host: process.env.EMAIL_SERVER_HOST as string,
+    port,
+    user: process.env.EMAIL_SERVER_USER as string,
+    pass: process.env.EMAIL_SERVER_PASSWORD as string,
+    from: process.env.EMAIL_FROM as string,
+  };
+};
+
+const createTransporter = () => {
+  const { host, port, user, pass } = validateSmtpEnv();
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: {
+      user,
+      pass,
+    },
+  });
+};
+
+let cachedTransporter: nodemailer.Transporter | null = null;
+
+const getTransporter = () => {
+  if (!cachedTransporter) {
+    cachedTransporter = createTransporter();
+  }
+  return cachedTransporter;
+};
+
+const sendViaSmtp = async (mailOptions: MailOptions): Promise<SendResult> => {
+  try {
+    const transporter = getTransporter();
+    const info = await transporter.sendMail(mailOptions);
+    return { ok: true, channel: "smtp", id: info.messageId };
+  } catch (error: any) {
+    console.error("SMTP send failed:", error);
+    return { ok: false, error: error?.message || "SMTP send failed" };
+  }
+};
+
+const sendViaResend = async (mailOptions: MailOptions): Promise<SendResult> => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { ok: false, error: "RESEND_API_KEY not set" };
+
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: mailOptions.from,
+        to: [mailOptions.to],
+        subject: mailOptions.subject,
+        html: mailOptions.html,
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Resend failed: ${response.status} ${text}`);
+    }
+
+    const data = await response.json();
+    return { ok: true, channel: "resend", id: data.id };
+  } catch (error: any) {
+    console.error("Resend send failed:", error);
+    return { ok: false, error: error?.message || "Resend send failed" };
+  }
+};
+
+const sendEmail = async (mailOptions: MailOptions): Promise<SendResult> => {
+  let smtpResult = await sendViaSmtp(mailOptions);
+
+  if (smtpResult.ok) return smtpResult;
+
+  if (process.env.RESEND_API_KEY) {
+    const resendResult = await sendViaResend(mailOptions);
+    if (resendResult.ok) return resendResult;
+    return resendResult;
+  }
+
+  return smtpResult;
+};
 
 /* ==============================
    PASSWORD RESET EMAIL
 ================================ */
 export async function sendPasswordResetEmail(email: string, token: string) {
-  const resetLink = `${process.env.BASE_URL}/auth/new-password?token=${token}`;
+  const baseUrl = getBaseUrl();
+  const resetLink = `${baseUrl}/auth/new-password?token=${token}`;
 
-  const mailOptions = {
+  const mailOptions: MailOptions = {
     from: `"Support Team" <${process.env.EMAIL_FROM}>`,
     to: email,
     subject: "Reset Your Password",
@@ -65,14 +205,13 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     `,
   };
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Password reset email sent:", info.response);
-    return info;
-  } catch (error) {
-    console.error("Error sending reset email:", error);
-    throw error;
+  const result = await sendEmail(mailOptions);
+
+  if (!result.ok) {
+    console.error("Password reset email failed:", result.error);
   }
+
+  return result;
 }
 
 /* ==============================
@@ -83,9 +222,10 @@ export async function sendVerificationEmail(
   token: string,
   name: string,
 ) {
-  const verificationLink = `${process.env.BASE_URL}/auth/new-verification?token=${token}`;
+  const baseUrl = getBaseUrl();
+  const verificationLink = `${baseUrl}/auth/new-verification?token=${token}`;
 
-  const mailOptions = {
+  const mailOptions: MailOptions = {
     from: `"Support Team" <${process.env.EMAIL_FROM}>`,
     to: email,
     subject: "Verify Your Email Address",
@@ -136,13 +276,11 @@ export async function sendVerificationEmail(
     `,
   };
 
-  try {
-    console.log("Sending verification email...");
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Verification email sent:", info.response);
-    return info;
-  } catch (error) {
-    console.error("Error sending verification email:", error);
-    throw error;
+  const result = await sendEmail(mailOptions);
+
+  if (!result.ok) {
+    console.error("Verification email failed:", result.error);
   }
+
+  return result;
 }
